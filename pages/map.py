@@ -533,7 +533,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 b1, b2, b3 = st.columns([1, 1, 1])
 with b1:
     if st.button("🏠 메인 페이지로", use_container_width=True):
-        st.switch_page("bubble2.py")
+        st.switch_page("pages/bubble2.py")     
 with b2:
     if st.button("🔄 지도 새로고침", use_container_width=True):
         st.rerun()
