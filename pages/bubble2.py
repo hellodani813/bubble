@@ -18,208 +18,269 @@ st.set_page_config(
 )
 
 # =========================================================
-# 커스텀 CSS
+# 커스텀 CSS — 감성 파스텔톤 테마
 # =========================================================
 st.markdown("""
 <style>
-    .main { background-color: #FAFAFC; }
+    /* ============ 전체 배경 ============ */
+    .stApp { background-color: #FFFBF7; }
+    .main  { background-color: #FFFBF7; }
 
+    /* ============ Hero 배너 ============ */
     .hero-banner {
-        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-        padding: 28px 32px; border-radius: 14px; color: white; margin-bottom: 20px;
+        background: linear-gradient(135deg, #FFD6E8 0%, #C8B6E2 50%, #B5D8E8 100%);
+        padding: 28px 32px; border-radius: 18px; color: #5B4B7C; margin-bottom: 20px;
+        border: 1px solid #F0E6F7;
     }
-    .hero-banner h1 { color: white !important; margin: 0 0 8px 0; font-size: 28px; font-weight: 700; }
-    .hero-banner p  { color: rgba(255,255,255,0.92); margin: 0; font-size: 15px; line-height: 1.6; }
+    .hero-banner h1 { color: #5B4B7C !important; margin: 0 0 8px 0; font-size: 28px; font-weight: 700; }
+    .hero-banner p  { color: #6B5B8C; margin: 0; font-size: 15px; line-height: 1.6; }
 
+    /* ============ 섹션 타이틀 ============ */
     .section-title {
-        font-size: 18px; font-weight: 700; color: #111827;
-        padding: 6px 0 12px 0; border-bottom: 2px solid #E5E7EB; margin-bottom: 14px;
+        font-size: 18px; font-weight: 700; color: #5B4B7C;
+        padding: 6px 0 12px 0; border-bottom: 2px solid #F0E6F7; margin-bottom: 14px;
     }
 
+    /* ============ 카드 공통 ============ */
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        background: white; border-radius: 12px !important;
+        background: #FFFFFF; border-radius: 16px !important;
+        border: 1px solid #F0E6F7 !important;
         transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
     div[data-testid="stVerticalBlockBorderWrapper"]:hover {
-        transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(183, 148, 244, 0.15);
     }
 
+    /* ============ 카테고리 뱃지 (파스텔) ============ */
     .cat-badge {
-        display: inline-block; padding: 3px 10px; border-radius: 6px;
+        display: inline-block; padding: 4px 12px; border-radius: 12px;
         font-size: 11px; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.3px;
     }
-    .cat-스포츠 { background:#DBEAFE; color:#1E40AF; }
-    .cat-정치   { background:#FEE2E2; color:#991B1B; }
-    .cat-게임   { background:#E0E7FF; color:#4338CA; }
-    .cat-연예   { background:#FCE7F3; color:#9D174D; }
-    .cat-사건사고 { background:#FEF3C7; color:#92400E; }
-    .cat-교육   { background:#D1FAE5; color:#065F46; }
+    .cat-스포츠   { background:#D6EAFE; color:#5B7DB1; }
+    .cat-정치     { background:#FFE0E0; color:#B86B7A; }
+    .cat-게임     { background:#E2DBFA; color:#8B7AC8; }
+    .cat-연예     { background:#FFE0EF; color:#C97AAB; }
+    .cat-사건사고 { background:#FFEEDB; color:#C48C5B; }
+    .cat-교육     { background:#D9F0E0; color:#6BA37A; }
 
+    /* ============ 기사 카드 텍스트 ============ */
     .news-title {
-        font-size: 15px; font-weight: 600; color: #1F2937;
+        font-size: 15px; font-weight: 600; color: #3D3354;
         line-height: 1.45; min-height: 44px; margin-bottom: 6px;
     }
-    .news-source { font-size: 11px; color: #6B7280; margin-bottom: 10px; }
+    .news-source { font-size: 11px; color: #9B8FB8; margin-bottom: 10px; }
 
+    /* ============ 원문 링크 버튼 ============ */
     .news-link-btn {
         display: inline-block; width: 100%; text-align: center;
-        padding: 8px 12px; background: #F3F4F6;
-        color: #4F46E5 !important; border: 1px solid #E5E7EB;
-        border-radius: 8px; font-size: 13px; font-weight: 600;
+        padding: 8px 12px; background: #F8F4FF;
+        color: #8B7AC8 !important; border: 1px solid #E2DBFA;
+        border-radius: 10px; font-size: 13px; font-weight: 600;
         text-decoration: none !important; margin-top: 6px;
         transition: background 0.15s ease, border-color 0.15s ease;
         box-sizing: border-box;
     }
     .news-link-btn:hover {
-        background: #EEF2FF; border-color: #4F46E5; text-decoration: none !important;
+        background: #EFE7FF; border-color: #B794F4; text-decoration: none !important;
     }
 
+    /* ============ 관심 없음 버튼 영역 ============ */
     .skip-zone {
-        background: #FFFBEB; border: 1px dashed #F59E0B;
-        border-radius: 12px; padding: 14px 16px; margin-top: 14px;
+        background: #FFF4E6; border: 1.5px dashed #FFD4A3;
+        border-radius: 16px; padding: 16px 18px; margin-top: 14px;
         text-align: center;
     }
-    .skip-zone .ttl { font-size:13px; font-weight:700; color:#92400E; margin-bottom:6px; }
-    .skip-zone .desc { font-size:12px; color:#A16207; line-height:1.5; }
+    .skip-zone .ttl { font-size:13px; font-weight:700; color:#C48C5B; margin-bottom:6px; }
+    .skip-zone .desc { font-size:12px; color:#A47C5B; line-height:1.5; }
 
+    /* ============ 버블 단계 카드 ============ */
     .bubble-card {
-        padding: 16px 18px; border-radius: 12px;
+        padding: 16px 18px; border-radius: 14px;
         margin-bottom: 14px; border-left: 5px solid;
     }
-    .bubble-lv1 { background:#ECFDF5; border-color:#10B981; }
-    .bubble-lv2 { background:#FFFBEB; border-color:#F59E0B; }
-    .bubble-lv3 { background:#FFF7ED; border-color:#F97316; }
-    .bubble-lv4 { background:#FEF2F2; border-color:#EF4444; }
-    .bubble-card .lv-label { font-size:12px; font-weight:700; letter-spacing:0.5px; opacity:0.7; }
-    .bubble-card .lv-title { font-size:17px; font-weight:700; margin:2px 0 4px 0; color:#111827; }
-    .bubble-card .lv-desc  { font-size:13px; color:#4B5563; line-height:1.5; }
+    .bubble-lv1 { background:#E8F5EC; border-color:#A8D8B5; }
+    .bubble-lv2 { background:#FFF6E0; border-color:#FFD68A; }
+    .bubble-lv3 { background:#FFE9D6; border-color:#FFB088; }
+    .bubble-lv4 { background:#FFE0E0; border-color:#FFA8B8; }
+    .bubble-card .lv-label { font-size:12px; font-weight:700; letter-spacing:0.5px; color:#7C6A8B; opacity:0.8; }
+    .bubble-card .lv-title { font-size:17px; font-weight:700; margin:2px 0 4px 0; color:#5B4B7C; }
+    .bubble-card .lv-desc  { font-size:13px; color:#6B5B8C; line-height:1.5; }
 
+    /* ============ 단계 도트 ============ */
     .stage-dots { display:flex; gap:6px; margin-top:10px; }
-    .dot { flex:1; height:6px; border-radius:3px; background:#E5E7EB; }
-    .dot.active-1 { background:#10B981; }
-    .dot.active-2 { background:#F59E0B; }
-    .dot.active-3 { background:#F97316; }
-    .dot.active-4 { background:#EF4444; }
+    .dot { flex:1; height:6px; border-radius:3px; background:#F0E6F7; }
+    .dot.active-1 { background:#A8D8B5; }
+    .dot.active-2 { background:#FFD68A; }
+    .dot.active-3 { background:#FFB088; }
+    .dot.active-4 { background:#FFA8B8; }
 
+    /* ============ 성향 카드 ============ */
     .personality-card {
-        background: white; border: 1px solid #E5E7EB; border-radius: 12px;
+        background: linear-gradient(135deg, #FAF4FF 0%, #FFFBF7 100%);
+        border: 1px solid #F0E6F7; border-radius: 14px;
         padding: 18px; margin-bottom: 14px;
     }
-    .personality-type { font-size:22px; font-weight:700; color:#4F46E5; margin-bottom:6px; }
-    .personality-desc { font-size:13px; color:#4B5563; line-height:1.6; }
+    .personality-type { font-size:22px; font-weight:700; color:#8B7AC8; margin-bottom:6px; }
+    .personality-desc { font-size:13px; color:#6B5B8C; line-height:1.6; }
 
+    /* ============ 미니 메트릭 ============ */
     .mini-metric {
-        background: white; border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px 14px;
+        background: #FFFFFF; border: 1px solid #F0E6F7; border-radius: 14px; padding: 12px 14px;
     }
-    .mini-metric .label { font-size:11px; color:#6B7280; font-weight:600; }
-    .mini-metric .value { font-size:22px; color:#111827; font-weight:700; margin-top:2px; }
+    .mini-metric .label { font-size:11px; color:#9B8FB8; font-weight:600; }
+    .mini-metric .value { font-size:22px; color:#5B4B7C; font-weight:700; margin-top:2px; }
 
+    /* ============ 비중 가로 막대 ============ */
     .share-row {
         display:flex; align-items:center; gap:10px; margin-bottom:10px;
     }
     .share-label {
-        width:90px; font-size:13px; font-weight:600; color:#374151; flex-shrink:0;
+        width:90px; font-size:13px; font-weight:600; color:#5B4B7C; flex-shrink:0;
     }
     .share-bar-wrap {
-        flex:1; background:#F3F4F6; height:22px; border-radius:6px; overflow:hidden;
-        position:relative;
+        flex:1; background:#F8F4FF; height:22px; border-radius:11px; overflow:hidden;
     }
     .share-bar {
-        height:100%; background:#4F46E5; border-radius:6px;
+        height:100%;
+        background: linear-gradient(90deg, #C8B6E2, #B794F4);
+        border-radius:11px;
         transition: width 0.4s ease;
     }
     .share-value {
-        width:80px; font-size:12px; font-weight:600; color:#111827; text-align:right; flex-shrink:0;
+        width:80px; font-size:12px; font-weight:600; color:#5B4B7C; text-align:right; flex-shrink:0;
     }
 
+    /* ============ 탈출 챌린지 Hero ============ */
     .escape-hero {
-        background: linear-gradient(135deg, #059669 0%, #10B981 100%);
-        padding: 22px 26px; border-radius: 14px; color: white; margin-bottom: 18px;
+        background: linear-gradient(135deg, #C8EBD8 0%, #B5D8E8 100%);
+        padding: 22px 26px; border-radius: 18px; color: #4A6B5B; margin-bottom: 18px;
+        border: 1px solid #D9F0E0;
     }
-    .escape-hero h2 { color:white !important; margin:0 0 6px 0; font-size:22px; font-weight:700; }
-    .escape-hero p  { color:rgba(255,255,255,0.92); margin:0; font-size:14px; line-height:1.6; }
+    .escape-hero h2 { color:#4A6B5B !important; margin:0 0 6px 0; font-size:22px; font-weight:700; }
+    .escape-hero p  { color:#5B7D6B; margin:0; font-size:14px; line-height:1.6; }
 
+    /* ============ 탈출 진행도 ============ */
     .escape-progress-wrap {
-        background:white; border:1px solid #E5E7EB; border-radius:12px;
+        background:#FFFFFF; border:1px solid #D9F0E0; border-radius:14px;
         padding:16px 18px; margin-bottom:16px;
     }
     .escape-progress-label {
         display:flex; justify-content:space-between; align-items:center;
-        font-size:13px; font-weight:600; color:#374151; margin-bottom:8px;
+        font-size:13px; font-weight:600; color:#5B4B7C; margin-bottom:8px;
     }
     .escape-progress-bar {
-        width:100%; height:12px; background:#E5E7EB; border-radius:6px; overflow:hidden;
+        width:100%; height:12px; background:#F0F8F2; border-radius:6px; overflow:hidden;
     }
     .escape-progress-fill {
-        height:100%; background:linear-gradient(90deg, #10B981, #059669); border-radius:6px;
+        height:100%; background:linear-gradient(90deg, #A8D8B5, #8BC9A1); border-radius:6px;
         transition: width 0.4s ease;
     }
-    .escape-progress-meta { font-size:11px; color:#6B7280; margin-top:6px; }
+    .escape-progress-meta { font-size:11px; color:#7BA38A; margin-top:6px; }
 
+    /* ============ 안 본 카테고리 카드 ============ */
     .missed-card {
-        background: white; border:1px solid #E5E7EB; border-left:4px solid #10B981;
-        border-radius:10px; padding:14px; margin-bottom:10px;
+        background: #FFFFFF; border:1px solid #F0E6F7; border-left:4px solid #A8D8B5;
+        border-radius:14px; padding:14px; margin-bottom:10px;
     }
-    .missed-card .ttl { font-size:11px; color:#059669; font-weight:700; letter-spacing:0.5px; }
-    .missed-card .name { font-size:16px; font-weight:700; color:#111827; margin:2px 0 4px 0; }
-    .missed-card .desc { font-size:12px; color:#6B7280; }
+    .missed-card .ttl { font-size:11px; color:#7BA38A; font-weight:700; letter-spacing:0.5px; }
+    .missed-card .name { font-size:16px; font-weight:700; color:#5B4B7C; margin:2px 0 4px 0; }
+    .missed-card .desc { font-size:12px; color:#9B8FB8; }
 
+    /* ============ 탈출 성공 ============ */
     .escape-success {
-        background:#ECFDF5; border:2px solid #10B981; border-radius:12px;
+        background: linear-gradient(135deg, #E8F5EC 0%, #FFF4E6 100%);
+        border:2px solid #A8D8B5; border-radius:16px;
         padding:18px; text-align:center; margin-bottom:14px;
     }
-    .escape-success .ttl { font-size:14px; color:#059669; font-weight:700; }
-    .escape-success .msg { font-size:18px; color:#065F46; font-weight:700; margin-top:4px; }
+    .escape-success .ttl { font-size:14px; color:#7BA38A; font-weight:700; }
+    .escape-success .msg { font-size:18px; color:#4A6B5B; font-weight:700; margin-top:4px; }
 
+    /* ============ 댓글 (생각 나누기) ============ */
     .reflect-question {
-        background:#F9FAFB; border:1px solid #E5E7EB; border-radius:10px;
+        background:#FAF4FF; border:1px solid #F0E6F7; border-radius:12px;
         padding:14px 16px; margin-bottom:10px;
     }
     .reflect-question .qnum {
-        display:inline-block; background:#4F46E5; color:white;
-        font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px;
+        display:inline-block; background:#B794F4; color:#FFFFFF;
+        font-size:11px; font-weight:700; padding:3px 10px; border-radius:8px;
         margin-right:8px; letter-spacing:0.3px;
     }
     .reflect-question .qcount {
-        float:right; background:#E0E7FF; color:#4338CA;
-        font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px;
+        float:right; background:#FFE0EF; color:#C97AAB;
+        font-size:11px; font-weight:600; padding:3px 10px; border-radius:12px;
     }
     .reflect-question .qtext {
-        font-size:14px; font-weight:600; color:#111827; line-height:1.5;
+        font-size:14px; font-weight:600; color:#5B4B7C; line-height:1.5;
     }
     .comment-card {
-        background:white; border:1px solid #E5E7EB; border-radius:10px;
+        background:#FFFFFF; border:1px solid #F0E6F7; border-radius:12px;
         padding:12px 14px; margin-bottom:8px;
     }
     .comment-head {
         display:flex; justify-content:space-between; align-items:center;
         margin-bottom:6px;
     }
-    .comment-author { font-size:12px; font-weight:700; color:#4F46E5; }
-    .comment-time   { font-size:11px; color:#9CA3AF; }
+    .comment-author { font-size:12px; font-weight:700; color:#8B7AC8; }
+    .comment-time   { font-size:11px; color:#B5A8C9; }
     .comment-body {
-        font-size:13px; color:#374151; line-height:1.6;
+        font-size:13px; color:#5B4B7C; line-height:1.6;
         white-space:pre-wrap; word-break:break-word;
     }
     .no-comments {
-        text-align:center; padding:20px; color:#9CA3AF;
-        font-size:12px; background:#FAFAFC; border-radius:8px;
-        border:1px dashed #E5E7EB;
+        text-align:center; padding:20px; color:#B5A8C9;
+        font-size:12px; background:#FAF4FF; border-radius:12px;
+        border:1px dashed #E2DBFA;
     }
 
+    /* ============ 탈출 팁 카드 ============ */
     .escape-card {
-        background: white; border: 1px solid #E5E7EB; border-radius: 12px;
+        background: #FFFFFF; border: 1px solid #F0E6F7; border-radius: 14px;
         padding: 18px; height: 100%;
     }
     .escape-card .num {
-        display:inline-block; width:28px; height:28px; border-radius:8px;
-        background:#4F46E5; color:white; text-align:center; line-height:28px;
+        display:inline-block; width:28px; height:28px; border-radius:10px;
+        background: linear-gradient(135deg, #C8B6E2, #B794F4);
+        color:#FFFFFF; text-align:center; line-height:28px;
         font-weight:700; font-size:14px; margin-bottom: 10px;
     }
-    .escape-card h4 { margin:4px 0 6px 0; font-size:15px; color:#111827; }
-    .escape-card p  { font-size:13px; color:#4B5563; line-height:1.6; margin:0; }
+    .escape-card h4 { margin:4px 0 6px 0; font-size:15px; color:#5B4B7C; }
+    .escape-card p  { font-size:13px; color:#7C6A8B; line-height:1.6; margin:0; }
 
-    .stButton > button { border-radius: 8px; font-weight: 600; font-size: 13px; }
+    /* ============ Streamlit 기본 위젯 톤 보정 ============ */
+    .stButton > button {
+        border-radius: 12px; font-weight: 600; font-size: 13px;
+        background: #F8F4FF; color: #8B7AC8;
+        border: 1px solid #E2DBFA;
+        transition: all 0.15s ease;
+    }
+    .stButton > button:hover {
+        background: #EFE7FF; border-color: #B794F4;
+        color: #7A66B8;
+    }
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #C8B6E2, #B794F4);
+        color: #FFFFFF !important;
+        border: none;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(135deg, #B794F4, #A47CE0);
+    }
+
+    /* alert 박스 톤 부드럽게 */
+    div[data-testid="stAlert"] {
+        border-radius: 12px !important;
+        border: 1px solid #F0E6F7 !important;
+    }
+
+    /* expander, divider */
+    hr { border-color: #F0E6F7 !important; }
+    
+    /* 헤딩 색 통일 */
+    h1, h2, h3, h4, h5, h6 { color: #5B4B7C; }
+
+    /* 캡션 */
+    .stCaption, [data-testid="stCaptionContainer"] { color: #9B8FB8 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -244,6 +305,11 @@ CAT_DESC = {
 
 CAT_QUERIES = {c: c for c in categories}
 EXTREME_KEYWORDS = ["논란", "충격", "단독", "의혹", "분노"]
+
+# 파스텔 차트 컬러
+PASTEL_PRIMARY = "#B794F4"   # 라벤더
+PASTEL_GREEN   = "#A8D8B5"   # 민트
+PASTEL_PEACH   = "#FFB088"   # 피치
 
 REFLECT_QUESTIONS = [
     {"id": "q1", "text": "평소에 잘 안 보던 카테고리의 기사를 읽으니 어떤 느낌이 들었나요?"},
@@ -270,10 +336,8 @@ if "nickname" not in st.session_state:
     st.session_state.nickname = ""
 if "skip_count" not in st.session_state:
     st.session_state.skip_count = 0
-# ★ 버그 수정 핵심: 피드를 세션에 저장해 재실행 시 동일하게 유지
 if "current_feed" not in st.session_state:
     st.session_state.current_feed = None
-# ★ 탈출 모드의 missed 샘플도 안정화
 if "escape_samples" not in st.session_state:
     st.session_state.escape_samples = {}
 
@@ -358,7 +422,6 @@ def get_bubble_level():
     return 4
 
 def build_feed():
-    """피드를 새로 생성. 결과를 세션에 저장하지는 않음 (호출자가 결정)."""
     bubble_level = get_bubble_level()
     is_extreme = bubble_level >= 3
     weighted = []
@@ -382,21 +445,19 @@ def build_feed():
     return feed
 
 def ensure_feed():
-    """세션에 피드가 없으면 새로 생성. 있으면 그대로 사용."""
     if st.session_state.current_feed is None:
         st.session_state.current_feed = build_feed()
     return st.session_state.current_feed
 
 def refresh_feed():
-    """피드를 강제로 새로 생성."""
     st.session_state.current_feed = build_feed()
 
 def click_content(item):
     cat = item["category"]
     st.session_state.click_history.append(cat)
     st.session_state.weights[cat] += 3
-    refresh_feed()              # ★ 클릭 처리 후 새 피드 생성
-    st.session_state.escape_samples = {}  # 탈출 카드도 갱신
+    refresh_feed()
+    st.session_state.escape_samples = {}
 
 def skip_feed():
     st.session_state.skip_count += 1
@@ -404,7 +465,7 @@ def skip_feed():
         dominant = max(st.session_state.weights, key=st.session_state.weights.get)
         if st.session_state.weights[dominant] > 1:
             st.session_state.weights[dominant] = max(1, st.session_state.weights[dominant] - 1)
-    refresh_feed()              # ★ 건너뛰기 시에도 새 피드
+    refresh_feed()
 
 def analyze_personality():
     history = st.session_state.click_history
@@ -425,7 +486,6 @@ def analyze_personality():
     name, icon = labels[dominant]
     return name, f"현재 **{dominant}** 카테고리를 집중 소비 중입니다.", icon
 
-# ---------- 탈출 체험 ----------
 def get_missed_categories():
     history = st.session_state.click_history
     counts = {cat: history.count(cat) for cat in categories}
@@ -433,7 +493,6 @@ def get_missed_categories():
     return [c for c in categories if counts[c] < avg]
 
 def get_escape_sample(cat):
-    """탈출 카드의 샘플 기사도 세션에 캐싱하여 재실행 시 안정 유지."""
     if cat not in st.session_state.escape_samples:
         pool = fetch_google_news(cat, is_extreme=False) or get_fallback_items(cat, False)
         st.session_state.escape_samples[cat] = (
@@ -473,7 +532,6 @@ def reset_all():
     st.session_state.escape_samples = {}
     st.cache_data.clear()
 
-# ---------- 댓글 ----------
 def add_comment(qid, author, body):
     if not body.strip():
         return False
@@ -576,7 +634,6 @@ with left_col:
     st.markdown('<div class="section-title">📰 맞춤형 실시간 추천 피드</div>', unsafe_allow_html=True)
     st.caption("💡 **기사 보기** 버튼은 알고리즘 학습용, **원문 읽기** 버튼은 실제 뉴스 페이지로 이동합니다.")
 
-    # ★ 세션에 저장된 피드를 사용 (재실행 시에도 동일)
     with st.spinner("구글 뉴스에서 최신 기사를 불러오는 중..."):
         feed = ensure_feed()
 
@@ -591,12 +648,9 @@ with left_col:
                 st.markdown(f'<div class="news-title">{html.escape(item["title"])}</div>', unsafe_allow_html=True)
                 st.markdown(f'<div class="news-source">📡 {html.escape(item["source"])}</div>', unsafe_allow_html=True)
 
-                # ★ 버튼 key를 안정적으로: 카테고리와 제목 해시 기반
-                # (피드가 동일하므로 i만 써도 되지만, 더욱 안전하게)
                 btn_key = f"btn_{i}_{cat}_{total_clicks}_{st.session_state.skip_count}"
                 if st.button("기사 보기 → (알고리즘 학습)",
-                             key=btn_key,
-                             use_container_width=True):
+                             key=btn_key, use_container_width=True):
                     click_content(item)
                     st.rerun()
 
@@ -647,7 +701,7 @@ with right_col:
     ptype, desc, picon = analyze_personality()
     st.markdown(f"""
     <div class="personality-card">
-      <div style="font-size:11px; color:#6B7280; font-weight:600;">디지털 성향 리포트</div>
+      <div style="font-size:11px; color:#9B8FB8; font-weight:600;">디지털 성향 리포트</div>
       <div class="personality-type">{picon} {ptype}</div>
       <div class="personality-desc">{desc}</div>
     </div>
@@ -667,7 +721,7 @@ with right_col:
             "카테고리": [f"{CAT_ICONS[c]} {c}" for c in categories],
             "추천 강도": [st.session_state.weights[c] for c in categories]
         })
-        st.bar_chart(df_w.set_index("카테고리"), height=240, color="#4F46E5")
+        st.bar_chart(df_w.set_index("카테고리"), height=240, color=PASTEL_PRIMARY)
 
     with tab_c:
         st.caption("실제로 내가 클릭한 카테고리별 횟수입니다.")
@@ -678,7 +732,7 @@ with right_col:
                 "카테고리": [f"{CAT_ICONS[c]} {c}" for c in categories],
                 "클릭 횟수": [click_counts[c] for c in categories]
             })
-            st.bar_chart(df_c.set_index("카테고리"), height=240, color="#10B981")
+            st.bar_chart(df_c.set_index("카테고리"), height=240, color=PASTEL_GREEN)
             max_cat = max(click_counts, key=click_counts.get)
             min_cat = min(click_counts, key=click_counts.get)
             ic1, ic2 = st.columns(2)
@@ -727,7 +781,9 @@ with right_col:
                     row[f"{CAT_ICONS[c]} {c}"] = cumulative[c]
                 rows.append(row)
             df_t = pd.DataFrame(rows).set_index("클릭 순서")
-            st.line_chart(df_t, height=260)
+            # 다중 라인용 파스텔 팔레트
+            st.line_chart(df_t, height=260,
+                          color=["#B794F4", "#FFB088", "#A8D8B5", "#FFA8B8", "#8BC4E8", "#FFD68A"])
 
 # =========================================================
 # 탈출 체험
@@ -767,7 +823,7 @@ else:
     <div class="escape-progress-wrap">
       <div class="escape-progress-label">
         <span>🎯 다양성 회복 진행도</span>
-        <span style="color:#059669;">{escape_diversity} / {GOAL} 카테고리</span>
+        <span style="color:#7BA38A;">{escape_diversity} / {GOAL} 카테고리</span>
       </div>
       <div class="escape-progress-bar">
         <div class="escape-progress-fill" style="width:{progress_pct}%;"></div>
@@ -797,15 +853,15 @@ else:
             <div class="mini-metric">
               <div class="label">BEFORE — 탈출 전</div>
               <div class="value" style="font-size:16px;">우세: {CAT_ICONS.get(before_dom,'')} {before_dom}</div>
-              <div style="font-size:12px; color:#6B7280; margin-top:4px;">탐색 다양성: {before_div} / 6</div>
+              <div style="font-size:12px; color:#9B8FB8; margin-top:4px;">탐색 다양성: {before_div} / 6</div>
             </div>
             """, unsafe_allow_html=True)
         with ba2:
             st.markdown(f"""
-            <div class="mini-metric" style="border-color:#10B981;">
-              <div class="label" style="color:#059669;">AFTER — 탈출 후</div>
+            <div class="mini-metric" style="border-color:#A8D8B5;">
+              <div class="label" style="color:#7BA38A;">AFTER — 탈출 후</div>
               <div class="value" style="font-size:16px;">우세: {CAT_ICONS.get(after_dom,'')} {after_dom}</div>
-              <div style="font-size:12px; color:#059669; margin-top:4px;">탐색 다양성: {after_div} / 6 ↑</div>
+              <div style="font-size:12px; color:#7BA38A; margin-top:4px;">탐색 다양성: {after_div} / 6 ↑</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -814,7 +870,7 @@ else:
             "Before": [snap["weights"][c] for c in categories],
             "After":  [st.session_state.weights[c] for c in categories]
         }).set_index("카테고리")
-        st.bar_chart(comp_df, height=260)
+        st.bar_chart(comp_df, height=260, color=["#C8B6E2", "#A8D8B5"])
 
         st.markdown("##### 🧠 함께 생각해 봐요")
         st.caption("아래 질문에 자유롭게 본인의 생각을 남겨보세요. 친구들의 의견도 확인할 수 있어요.")
@@ -850,16 +906,16 @@ else:
         miss_cols = st.columns(min(3, len(missed)))
         for idx, cat in enumerate(missed[:3]):
             with miss_cols[idx]:
-                sample = get_escape_sample(cat)  # ★ 캐싱된 샘플 사용
+                sample = get_escape_sample(cat)
 
                 st.markdown(f"""
                 <div class="missed-card">
                   <div class="ttl">📂 안 본 카테고리</div>
                   <div class="name">{CAT_ICONS[cat]} {cat}</div>
                   <div class="desc">{CAT_DESC[cat]}</div>
-                  <hr style="border:none; border-top:1px solid #F3F4F6; margin:10px 0;">
-                  <div style="font-size:13px; font-weight:600; color:#1F2937; line-height:1.4;">{html.escape(sample['title'])}</div>
-                  <div style="font-size:11px; color:#9CA3AF; margin-top:4px;">📡 {html.escape(sample['source'])}</div>
+                  <hr style="border:none; border-top:1px solid #F0E6F7; margin:10px 0;">
+                  <div style="font-size:13px; font-weight:600; color:#5B4B7C; line-height:1.4;">{html.escape(sample['title'])}</div>
+                  <div style="font-size:11px; color:#B5A8C9; margin-top:4px;">📡 {html.escape(sample['source'])}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
