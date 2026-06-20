@@ -61,6 +61,29 @@ st.markdown("""
     }
     .news-source { font-size: 11px; color: #6B7280; margin-bottom: 10px; }
 
+    /* 원문 링크 버튼 */
+    .news-link-btn {
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        padding: 8px 12px;
+        background: #F3F4F6;
+        color: #4F46E5 !important;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none !important;
+        margin-top: 6px;
+        transition: background 0.15s ease, border-color 0.15s ease;
+        box-sizing: border-box;
+    }
+    .news-link-btn:hover {
+        background: #EEF2FF;
+        border-color: #4F46E5;
+        text-decoration: none !important;
+    }
+
     .bubble-card {
         padding: 16px 18px; border-radius: 12px;
         margin-bottom: 14px; border-left: 5px solid;
@@ -93,7 +116,7 @@ st.markdown("""
     .mini-metric .label { font-size:11px; color:#6B7280; font-weight:600; }
     .mini-metric .value { font-size:22px; color:#111827; font-weight:700; margin-top:2px; }
 
-    /* ============ 탈출 체험 전용 스타일 ============ */
+    /* ============ 탈출 체험 ============ */
     .escape-hero {
         background: linear-gradient(135deg, #059669 0%, #10B981 100%);
         padding: 22px 26px; border-radius: 14px; color: white; margin-bottom: 18px;
@@ -133,7 +156,7 @@ st.markdown("""
     .escape-success .ttl { font-size:14px; color:#059669; font-weight:700; }
     .escape-success .msg { font-size:18px; color:#065F46; font-weight:700; margin-top:4px; }
 
-    /* ============ 댓글(생각 나누기) 스타일 ============ */
+    /* ============ 댓글 ============ */
     .reflect-question {
         background:#F9FAFB; border:1px solid #E5E7EB; border-radius:10px;
         padding:14px 16px; margin-bottom:10px;
@@ -159,12 +182,8 @@ st.markdown("""
         display:flex; justify-content:space-between; align-items:center;
         margin-bottom:6px;
     }
-    .comment-author {
-        font-size:12px; font-weight:700; color:#4F46E5;
-    }
-    .comment-time {
-        font-size:11px; color:#9CA3AF;
-    }
+    .comment-author { font-size:12px; font-weight:700; color:#4F46E5; }
+    .comment-time   { font-size:11px; color:#9CA3AF; }
     .comment-body {
         font-size:13px; color:#374151; line-height:1.6;
         white-space:pre-wrap; word-break:break-word;
@@ -213,7 +232,6 @@ CAT_DESC = {
 CAT_QUERIES = {c: c for c in categories}
 EXTREME_KEYWORDS = ["논란", "충격", "단독", "의혹", "분노"]
 
-# 성찰 질문 정의 (id 고정)
 REFLECT_QUESTIONS = [
     {"id": "q1", "text": "평소에 잘 안 보던 카테고리의 기사를 읽으니 어떤 느낌이 들었나요?"},
     {"id": "q2", "text": "알고리즘이 나에게 보여주지 않았던 정보 중에 중요한 내용이 있었나요?"},
@@ -233,14 +251,13 @@ if "escape_clicks" not in st.session_state:
     st.session_state.escape_clicks = []
 if "pre_escape_snapshot" not in st.session_state:
     st.session_state.pre_escape_snapshot = None
-# 댓글 저장소: {질문ID: [ {author, body, time}, ... ]}
 if "comments" not in st.session_state:
     st.session_state.comments = {q["id"]: [] for q in REFLECT_QUESTIONS}
 if "nickname" not in st.session_state:
     st.session_state.nickname = ""
 
 # =========================================================
-# 구글 뉴스 RSS
+# 구글 뉴스 RSS — link 필드 포함
 # =========================================================
 @st.cache_data(ttl=1800, show_spinner=False)
 def fetch_google_news(category, is_extreme):
@@ -253,6 +270,8 @@ def fetch_google_news(category, is_extreme):
 
     encoded = urllib.parse.quote(query)
     url = f"https://news.google.com/rss/search?q={encoded}&hl=ko&gl=KR&ceid=KR:ko"
+    # 폴백용 구글 뉴스 검색 페이지 URL (개별 link 누락 시)
+    google_search_url = f"https://news.google.com/search?q={encoded}&hl=ko&gl=KR&ceid=KR:ko"
 
     try:
         feed = feedparser.parse(url)
@@ -266,14 +285,19 @@ def fetch_google_news(category, is_extreme):
             else:
                 title_part, source = title, "출처 미상"
             title_part = re.sub(r'<[^>]+>', '', title_part).strip()
+            link = entry.get("link", "").strip() or google_search_url
             if title_part:
-                items.append({"title": title_part, "source": source.strip()})
+                items.append({
+                    "title": title_part,
+                    "source": source.strip(),
+                    "link": link
+                })
         return items if items else None
     except Exception:
         return None
 
 # =========================================================
-# 더미 데이터
+# 더미 데이터 — 폴백 시에도 구글 검색 링크 제공
 # =========================================================
 normal_titles = {
     "스포츠": ["손흥민, 경기 MVP 선정", "NBA 플레이오프 명승부", "프로야구 순위 경쟁 치열",
@@ -300,7 +324,13 @@ extreme_titles = {
 
 def get_fallback_items(category, is_extreme):
     pool = extreme_titles[category] if is_extreme else normal_titles[category]
-    return [{"title": t, "source": "예시 데이터"} for t in pool]
+    items = []
+    for t in pool:
+        # 폴백 데이터는 구글 뉴스에서 제목 검색 링크로 연결
+        q = urllib.parse.quote(t)
+        link = f"https://news.google.com/search?q={q}&hl=ko&gl=KR&ceid=KR:ko"
+        items.append({"title": t, "source": "예시 데이터", "link": link})
+    return items
 
 # =========================================================
 # 알고리즘 로직
@@ -328,7 +358,12 @@ def get_feed():
             pool = get_fallback_items(cat, is_extreme)
         sampled = random.sample(pool, count) if count <= len(pool) else random.choices(pool, k=count)
         for it in sampled:
-            feed.append({"title": it["title"], "source": it["source"], "category": cat})
+            feed.append({
+                "title": it["title"],
+                "source": it["source"],
+                "link": it.get("link", "#"),
+                "category": cat
+            })
     random.shuffle(feed)
     return feed
 
@@ -356,7 +391,7 @@ def analyze_personality():
     name, icon = labels[dominant]
     return name, f"현재 **{dominant}** 카테고리를 집중 소비 중입니다.", icon
 
-# ---------- 탈출 체험 함수 ----------
+# ---------- 탈출 체험 ----------
 def get_missed_categories():
     history = st.session_state.click_history
     counts = {cat: history.count(cat) for cat in categories}
@@ -387,11 +422,9 @@ def reset_all():
     st.session_state.escape_mode = False
     st.session_state.escape_clicks = []
     st.session_state.pre_escape_snapshot = None
-    # 댓글은 의도적으로 유지(수업 토론 자료 보존). 모두 지우고 싶다면 아래 라인 사용:
-    # st.session_state.comments = {q["id"]: [] for q in REFLECT_QUESTIONS}
     st.cache_data.clear()
 
-# ---------- 댓글 함수 ----------
+# ---------- 댓글 ----------
 def add_comment(qid, author, body):
     if not body.strip():
         return False
@@ -408,7 +441,6 @@ def delete_comment(qid, index):
         st.session_state.comments[qid].pop(index)
 
 def render_comment_section(qid, qnum, qtext):
-    """질문 1개에 대한 입력 + 댓글 목록 렌더링"""
     count = len(st.session_state.comments[qid])
     st.markdown(f"""
     <div class="reflect-question">
@@ -418,24 +450,16 @@ def render_comment_section(qid, qnum, qtext):
     </div>
     """, unsafe_allow_html=True)
 
-    # 입력 폼
     with st.form(key=f"form_{qid}", clear_on_submit=True):
         c1, c2 = st.columns([1, 3])
         with c1:
-            nick = st.text_input(
-                "닉네임",
-                value=st.session_state.nickname,
-                key=f"nick_{qid}",
-                placeholder="이름 또는 닉네임",
-                label_visibility="collapsed"
-            )
+            nick = st.text_input("닉네임", value=st.session_state.nickname,
+                                 key=f"nick_{qid}", placeholder="이름 또는 닉네임",
+                                 label_visibility="collapsed")
         with c2:
-            body = st.text_input(
-                "내 생각",
-                key=f"body_{qid}",
-                placeholder="자유롭게 내 생각을 적어보세요...",
-                label_visibility="collapsed"
-            )
+            body = st.text_input("내 생각", key=f"body_{qid}",
+                                 placeholder="자유롭게 내 생각을 적어보세요...",
+                                 label_visibility="collapsed")
         submitted = st.form_submit_button("💬 생각 남기기", use_container_width=False)
         if submitted:
             if add_comment(qid, nick, body):
@@ -445,7 +469,6 @@ def render_comment_section(qid, qnum, qtext):
             else:
                 st.warning("내용을 입력해 주세요.")
 
-    # 댓글 목록 (최신순)
     comments = st.session_state.comments[qid]
     if not comments:
         st.markdown('<div class="no-comments">아직 작성된 생각이 없습니다. 첫 번째 의견을 남겨보세요!</div>',
@@ -469,7 +492,6 @@ def render_comment_section(qid, qnum, qtext):
                 if st.button("🗑️", key=f"del_{qid}_{idx}_{c['time']}", help="삭제"):
                     delete_comment(qid, idx)
                     st.rerun()
-
     st.write("")
 
 # =========================================================
@@ -483,7 +505,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 상단 미니 메트릭
+# 상단 메트릭
 total_clicks = len(st.session_state.click_history)
 bubble_level = get_bubble_level()
 dominant_cat = max(st.session_state.weights, key=st.session_state.weights.get) if total_clicks else "-"
@@ -498,14 +520,17 @@ with m4: st.markdown(f'<div class="mini-metric"><div class="label">탐색 다양
 st.write("")
 
 # =========================================================
-# 2-컬럼: 피드 + 분석
+# 2-컬럼
 # =========================================================
 left_col, right_col = st.columns([1.3, 1], gap="large")
 
 with left_col:
     st.markdown('<div class="section-title">📰 맞춤형 실시간 추천 피드</div>', unsafe_allow_html=True)
+    st.caption("💡 **기사 보기** 버튼은 알고리즘 학습용, **원문 읽기** 버튼은 실제 뉴스 페이지로 이동합니다.")
+
     with st.spinner("구글 뉴스에서 최신 기사를 불러오는 중..."):
         feed = get_feed()
+
     feed_col1, feed_col2 = st.columns(2, gap="medium")
     for i, item in enumerate(feed):
         target = feed_col1 if i % 2 == 0 else feed_col2
@@ -514,11 +539,23 @@ with left_col:
                 cat = item["category"]
                 icon = CAT_ICONS.get(cat, "📂")
                 st.markdown(f'<span class="cat-badge cat-{cat}">{icon} {cat}</span>', unsafe_allow_html=True)
-                st.markdown(f'<div class="news-title">{item["title"]}</div>', unsafe_allow_html=True)
-                st.markdown(f'<div class="news-source">📡 {item["source"]}</div>', unsafe_allow_html=True)
-                if st.button("기사 보기 →", key=f"btn_{i}_{total_clicks}", use_container_width=True):
+                st.markdown(f'<div class="news-title">{html.escape(item["title"])}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="news-source">📡 {html.escape(item["source"])}</div>', unsafe_allow_html=True)
+
+                # 알고리즘 학습 버튼
+                if st.button("기사 보기 → (알고리즘 학습)",
+                             key=f"btn_{i}_{total_clicks}",
+                             use_container_width=True):
                     click_content(item)
                     st.rerun()
+
+                # 원문 링크 버튼 (새 탭으로)
+                link = item.get("link", "#")
+                st.markdown(
+                    f'<a class="news-link-btn" href="{html.escape(link)}" '
+                    f'target="_blank" rel="noopener noreferrer">🔗 원문 읽기 (새 탭)</a>',
+                    unsafe_allow_html=True
+                )
 
 with right_col:
     st.markdown('<div class="section-title">🤖 실시간 AI 분석</div>', unsafe_allow_html=True)
@@ -562,10 +599,9 @@ with right_col:
     st.bar_chart(df.set_index("카테고리"), height=240, color="#4F46E5")
 
 # =========================================================
-# 하단: 필터 버블 탈출 체험
+# 탈출 체험
 # =========================================================
 st.divider()
-
 st.markdown("""
 <div class="escape-hero">
   <h2>🪂 필터 버블 탈출 챌린지</h2>
@@ -649,7 +685,6 @@ else:
         }).set_index("카테고리")
         st.bar_chart(comp_df, height=260)
 
-        # ============ 함께 생각해 봐요 (댓글 기능) ============
         st.markdown("##### 🧠 함께 생각해 봐요")
         st.caption("아래 질문에 자유롭게 본인의 생각을 남겨보세요. 친구들의 의견도 확인할 수 있어요.")
 
@@ -661,7 +696,6 @@ else:
             render_comment_section(q["id"], idx, q["text"])
 
         st.divider()
-
         rc1, rc2 = st.columns(2)
         with rc1:
             if st.button("🔁 다시 탈출 챌린지 도전", use_container_width=True):
@@ -685,7 +719,7 @@ else:
         for idx, cat in enumerate(missed[:3]):
             with miss_cols[idx]:
                 pool = fetch_google_news(cat, is_extreme=False) or get_fallback_items(cat, False)
-                sample = random.choice(pool) if pool else {"title": f"{cat} 분야 기사", "source": "예시"}
+                sample = random.choice(pool) if pool else {"title": f"{cat} 분야 기사", "source": "예시", "link": "#"}
 
                 st.markdown(f"""
                 <div class="missed-card">
@@ -693,15 +727,23 @@ else:
                   <div class="name">{CAT_ICONS[cat]} {cat}</div>
                   <div class="desc">{CAT_DESC[cat]}</div>
                   <hr style="border:none; border-top:1px solid #F3F4F6; margin:10px 0;">
-                  <div style="font-size:13px; font-weight:600; color:#1F2937; line-height:1.4;">{sample['title']}</div>
-                  <div style="font-size:11px; color:#9CA3AF; margin-top:4px;">📡 {sample['source']}</div>
+                  <div style="font-size:13px; font-weight:600; color:#1F2937; line-height:1.4;">{html.escape(sample['title'])}</div>
+                  <div style="font-size:11px; color:#9CA3AF; margin-top:4px;">📡 {html.escape(sample['source'])}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
-                if st.button(f"이 시각 탐색하기", key=f"escape_{cat}_{len(st.session_state.escape_clicks)}",
+                if st.button(f"이 시각 탐색하기",
+                             key=f"escape_{cat}_{len(st.session_state.escape_clicks)}",
                              use_container_width=True):
                     escape_click(cat)
                     st.rerun()
+
+                # 탈출 모드에서도 원문 링크 제공
+                st.markdown(
+                    f'<a class="news-link-btn" href="{html.escape(sample.get("link","#"))}" '
+                    f'target="_blank" rel="noopener noreferrer">🔗 원문 읽기 (새 탭)</a>',
+                    unsafe_allow_html=True
+                )
 
         if escape_diversity == 0:
             st.info("👆 위 카드 중 하나를 클릭해 첫 발걸음을 시작하세요!")
