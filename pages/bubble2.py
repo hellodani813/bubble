@@ -61,28 +61,27 @@ st.markdown("""
     }
     .news-source { font-size: 11px; color: #6B7280; margin-bottom: 10px; }
 
-    /* 원문 링크 버튼 */
     .news-link-btn {
-        display: inline-block;
-        width: 100%;
-        text-align: center;
-        padding: 8px 12px;
-        background: #F3F4F6;
-        color: #4F46E5 !important;
-        border: 1px solid #E5E7EB;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        text-decoration: none !important;
-        margin-top: 6px;
+        display: inline-block; width: 100%; text-align: center;
+        padding: 8px 12px; background: #F3F4F6;
+        color: #4F46E5 !important; border: 1px solid #E5E7EB;
+        border-radius: 8px; font-size: 13px; font-weight: 600;
+        text-decoration: none !important; margin-top: 6px;
         transition: background 0.15s ease, border-color 0.15s ease;
         box-sizing: border-box;
     }
     .news-link-btn:hover {
-        background: #EEF2FF;
-        border-color: #4F46E5;
-        text-decoration: none !important;
+        background: #EEF2FF; border-color: #4F46E5; text-decoration: none !important;
     }
+
+    /* 관심 없음 버튼 영역 */
+    .skip-zone {
+        background: #FFFBEB; border: 1px dashed #F59E0B;
+        border-radius: 12px; padding: 14px 16px; margin-top: 14px;
+        text-align: center;
+    }
+    .skip-zone .ttl { font-size:13px; font-weight:700; color:#92400E; margin-bottom:6px; }
+    .skip-zone .desc { font-size:12px; color:#A16207; line-height:1.5; }
 
     .bubble-card {
         padding: 16px 18px; border-radius: 12px;
@@ -115,6 +114,25 @@ st.markdown("""
     }
     .mini-metric .label { font-size:11px; color:#6B7280; font-weight:600; }
     .mini-metric .value { font-size:22px; color:#111827; font-weight:700; margin-top:2px; }
+
+    /* 비중 가로 막대 (HTML 기반) */
+    .share-row {
+        display:flex; align-items:center; gap:10px; margin-bottom:10px;
+    }
+    .share-label {
+        width:90px; font-size:13px; font-weight:600; color:#374151; flex-shrink:0;
+    }
+    .share-bar-wrap {
+        flex:1; background:#F3F4F6; height:22px; border-radius:6px; overflow:hidden;
+        position:relative;
+    }
+    .share-bar {
+        height:100%; background:#4F46E5; border-radius:6px;
+        transition: width 0.4s ease;
+    }
+    .share-value {
+        width:80px; font-size:12px; font-weight:600; color:#111827; text-align:right; flex-shrink:0;
+    }
 
     /* ============ 탈출 체험 ============ */
     .escape-hero {
@@ -173,7 +191,6 @@ st.markdown("""
     .reflect-question .qtext {
         font-size:14px; font-weight:600; color:#111827; line-height:1.5;
     }
-
     .comment-card {
         background:white; border:1px solid #E5E7EB; border-radius:10px;
         padding:12px 14px; margin-bottom:8px;
@@ -255,9 +272,13 @@ if "comments" not in st.session_state:
     st.session_state.comments = {q["id"]: [] for q in REFLECT_QUESTIONS}
 if "nickname" not in st.session_state:
     st.session_state.nickname = ""
+if "skip_count" not in st.session_state:
+    st.session_state.skip_count = 0
+if "feed_seed" not in st.session_state:
+    st.session_state.feed_seed = 0  # 피드 강제 새로고침용
 
 # =========================================================
-# 구글 뉴스 RSS — link 필드 포함
+# 구글 뉴스 RSS
 # =========================================================
 @st.cache_data(ttl=1800, show_spinner=False)
 def fetch_google_news(category, is_extreme):
@@ -270,7 +291,6 @@ def fetch_google_news(category, is_extreme):
 
     encoded = urllib.parse.quote(query)
     url = f"https://news.google.com/rss/search?q={encoded}&hl=ko&gl=KR&ceid=KR:ko"
-    # 폴백용 구글 뉴스 검색 페이지 URL (개별 link 누락 시)
     google_search_url = f"https://news.google.com/search?q={encoded}&hl=ko&gl=KR&ceid=KR:ko"
 
     try:
@@ -287,17 +307,13 @@ def fetch_google_news(category, is_extreme):
             title_part = re.sub(r'<[^>]+>', '', title_part).strip()
             link = entry.get("link", "").strip() or google_search_url
             if title_part:
-                items.append({
-                    "title": title_part,
-                    "source": source.strip(),
-                    "link": link
-                })
+                items.append({"title": title_part, "source": source.strip(), "link": link})
         return items if items else None
     except Exception:
         return None
 
 # =========================================================
-# 더미 데이터 — 폴백 시에도 구글 검색 링크 제공
+# 더미 데이터
 # =========================================================
 normal_titles = {
     "스포츠": ["손흥민, 경기 MVP 선정", "NBA 플레이오프 명승부", "프로야구 순위 경쟁 치열",
@@ -326,7 +342,6 @@ def get_fallback_items(category, is_extreme):
     pool = extreme_titles[category] if is_extreme else normal_titles[category]
     items = []
     for t in pool:
-        # 폴백 데이터는 구글 뉴스에서 제목 검색 링크로 연결
         q = urllib.parse.quote(t)
         link = f"https://news.google.com/search?q={q}&hl=ko&gl=KR&ceid=KR:ko"
         items.append({"title": t, "source": "예시 데이터", "link": link})
@@ -359,10 +374,8 @@ def get_feed():
         sampled = random.sample(pool, count) if count <= len(pool) else random.choices(pool, k=count)
         for it in sampled:
             feed.append({
-                "title": it["title"],
-                "source": it["source"],
-                "link": it.get("link", "#"),
-                "category": cat
+                "title": it["title"], "source": it["source"],
+                "link": it.get("link", "#"), "category": cat
             })
     random.shuffle(feed)
     return feed
@@ -371,6 +384,15 @@ def click_content(item):
     cat = item["category"]
     st.session_state.click_history.append(cat)
     st.session_state.weights[cat] += 3
+
+def skip_feed():
+    """관심 있는 기사가 없을 때 — 우세 카테고리의 가중치를 1 감소시키고 피드 새로고침"""
+    st.session_state.skip_count += 1
+    if st.session_state.click_history:
+        dominant = max(st.session_state.weights, key=st.session_state.weights.get)
+        if st.session_state.weights[dominant] > 1:
+            st.session_state.weights[dominant] = max(1, st.session_state.weights[dominant] - 1)
+    st.session_state.feed_seed += 1  # 피드 변동성 강제
 
 def analyze_personality():
     history = st.session_state.click_history
@@ -422,6 +444,8 @@ def reset_all():
     st.session_state.escape_mode = False
     st.session_state.escape_clicks = []
     st.session_state.pre_escape_snapshot = None
+    st.session_state.skip_count = 0
+    st.session_state.feed_seed = 0
     st.cache_data.clear()
 
 # ---------- 댓글 ----------
@@ -430,8 +454,7 @@ def add_comment(qid, author, body):
         return False
     author = author.strip() if author.strip() else "익명의 학생"
     st.session_state.comments[qid].append({
-        "author": author,
-        "body": body.strip(),
+        "author": author, "body": body.strip(),
         "time": datetime.now().strftime("%H:%M")
     })
     return True
@@ -511,11 +534,12 @@ bubble_level = get_bubble_level()
 dominant_cat = max(st.session_state.weights, key=st.session_state.weights.get) if total_clicks else "-"
 diversity = len(set(st.session_state.click_history))
 
-m1, m2, m3, m4 = st.columns(4)
+m1, m2, m3, m4, m5 = st.columns(5)
 with m1: st.markdown(f'<div class="mini-metric"><div class="label">총 클릭 수</div><div class="value">{total_clicks}</div></div>', unsafe_allow_html=True)
 with m2: st.markdown(f'<div class="mini-metric"><div class="label">버블 단계</div><div class="value">Lv. {bubble_level}</div></div>', unsafe_allow_html=True)
 with m3: st.markdown(f'<div class="mini-metric"><div class="label">우세 카테고리</div><div class="value" style="font-size:18px;">{CAT_ICONS.get(dominant_cat,"")} {dominant_cat}</div></div>', unsafe_allow_html=True)
 with m4: st.markdown(f'<div class="mini-metric"><div class="label">탐색 다양성</div><div class="value">{diversity} / 6</div></div>', unsafe_allow_html=True)
+with m5: st.markdown(f'<div class="mini-metric"><div class="label">건너뛰기</div><div class="value">{st.session_state.skip_count}</div></div>', unsafe_allow_html=True)
 
 st.write("")
 
@@ -542,20 +566,34 @@ with left_col:
                 st.markdown(f'<div class="news-title">{html.escape(item["title"])}</div>', unsafe_allow_html=True)
                 st.markdown(f'<div class="news-source">📡 {html.escape(item["source"])}</div>', unsafe_allow_html=True)
 
-                # 알고리즘 학습 버튼
                 if st.button("기사 보기 → (알고리즘 학습)",
-                             key=f"btn_{i}_{total_clicks}",
+                             key=f"btn_{i}_{total_clicks}_{st.session_state.feed_seed}",
                              use_container_width=True):
                     click_content(item)
                     st.rerun()
 
-                # 원문 링크 버튼 (새 탭으로)
                 link = item.get("link", "#")
                 st.markdown(
                     f'<a class="news-link-btn" href="{html.escape(link)}" '
                     f'target="_blank" rel="noopener noreferrer">🔗 원문 읽기 (새 탭)</a>',
                     unsafe_allow_html=True
                 )
+
+    # ============ 관심 있는 기사가 없을 때 ============
+    st.markdown(f"""
+    <div class="skip-zone">
+      <div class="ttl">😐 이 중에 관심 있는 기사가 없나요?</div>
+      <div class="desc">버튼을 누르면 우세 카테고리의 추천 강도가 살짝 줄어들고 새 기사가 추천됩니다.<br>
+      알고리즘에게 <b>"이건 별로다"</b>라는 부정 신호를 보내는 학습입니다.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    sk1, sk2, sk3 = st.columns([1, 2, 1])
+    with sk2:
+        if st.button("🔄 관심 있는 기사가 없어요 — 다른 기사 보기",
+                     use_container_width=True,
+                     key=f"skip_{st.session_state.skip_count}"):
+            skip_feed()
+            st.rerun()
 
 with right_col:
     st.markdown('<div class="section-title">🤖 실시간 AI 분석</div>', unsafe_allow_html=True)
@@ -591,12 +629,92 @@ with right_col:
     if total_clicks >= 5:
         st.warning(f"🚨 정보 환경이 **{dominant_cat}** 위주로 좁아지고 있습니다.")
 
-    st.markdown("**📊 카테고리별 추천 강도**")
-    df = pd.DataFrame({
-        "카테고리": [f"{CAT_ICONS[c]} {c}" for c in st.session_state.weights.keys()],
-        "추천 강도": list(st.session_state.weights.values())
-    })
-    st.bar_chart(df.set_index("카테고리"), height=240, color="#4F46E5")
+    # ============ 키워드 분석 그래프 (4개 탭) ============
+    st.markdown("**📊 내가 학습시킨 키워드 분석**")
+
+    # 카테고리별 클릭 횟수
+    click_counts = {cat: st.session_state.click_history.count(cat) for cat in categories}
+
+    tab_w, tab_c, tab_p, tab_t = st.tabs(["추천 강도", "클릭 횟수", "비중", "추이"])
+
+    # --- 탭1: 추천 강도 (가중치) ---
+    with tab_w:
+        st.caption("AI가 각 카테고리에 부여한 추천 가중치입니다. 클릭할수록 해당 카테고리가 커집니다.")
+        df_w = pd.DataFrame({
+            "카테고리": [f"{CAT_ICONS[c]} {c}" for c in categories],
+            "추천 강도": [st.session_state.weights[c] for c in categories]
+        })
+        st.bar_chart(df_w.set_index("카테고리"), height=240, color="#4F46E5")
+
+    # --- 탭2: 클릭 횟수 ---
+    with tab_c:
+        st.caption("실제로 내가 클릭한 카테고리별 횟수입니다.")
+        if total_clicks == 0:
+            st.info("아직 클릭한 기사가 없습니다.")
+        else:
+            df_c = pd.DataFrame({
+                "카테고리": [f"{CAT_ICONS[c]} {c}" for c in categories],
+                "클릭 횟수": [click_counts[c] for c in categories]
+            })
+            st.bar_chart(df_c.set_index("카테고리"), height=240, color="#10B981")
+
+            # 최다/최소
+            max_cat = max(click_counts, key=click_counts.get)
+            min_cat = min(click_counts, key=click_counts.get)
+            ic1, ic2 = st.columns(2)
+            with ic1:
+                st.markdown(f'<div class="mini-metric"><div class="label">가장 많이 본 카테고리</div><div class="value" style="font-size:15px;">{CAT_ICONS[max_cat]} {max_cat} ({click_counts[max_cat]}회)</div></div>', unsafe_allow_html=True)
+            with ic2:
+                st.markdown(f'<div class="mini-metric"><div class="label">가장 안 본 카테고리</div><div class="value" style="font-size:15px;">{CAT_ICONS[min_cat]} {min_cat} ({click_counts[min_cat]}회)</div></div>', unsafe_allow_html=True)
+
+    # --- 탭3: 비중 (%) ---
+    with tab_p:
+        st.caption("전체 클릭 중 각 카테고리가 차지하는 비율입니다.")
+        if total_clicks == 0:
+            st.info("아직 클릭한 기사가 없습니다.")
+        else:
+            # 큰 순서대로 정렬
+            sorted_cats = sorted(categories, key=lambda c: click_counts[c], reverse=True)
+            html_rows = ""
+            for c in sorted_cats:
+                cnt = click_counts[c]
+                pct = (cnt / total_clicks * 100) if total_clicks > 0 else 0
+                bar_width = pct  # 0~100
+                html_rows += f"""
+                <div class="share-row">
+                  <div class="share-label">{CAT_ICONS[c]} {c}</div>
+                  <div class="share-bar-wrap"><div class="share-bar" style="width:{bar_width:.1f}%;"></div></div>
+                  <div class="share-value">{pct:.1f}% ({cnt}회)</div>
+                </div>
+                """
+            st.markdown(html_rows, unsafe_allow_html=True)
+
+            # 다양성 평가
+            top_pct = (click_counts[sorted_cats[0]] / total_clicks * 100) if total_clicks else 0
+            if top_pct >= 60:
+                st.error(f"⚠️ 1위 카테고리가 전체의 {top_pct:.0f}%를 차지합니다. 편향이 심합니다.")
+            elif top_pct >= 40:
+                st.warning(f"📌 1위 카테고리가 {top_pct:.0f}%로 비중이 높습니다.")
+            else:
+                st.success(f"✅ 1위 카테고리가 {top_pct:.0f}%로 비교적 균형 잡혀 있습니다.")
+
+    # --- 탭4: 클릭 추이 ---
+    with tab_t:
+        st.caption("클릭이 누적되면서 각 카테고리의 점유율이 어떻게 변했는지 보여줍니다.")
+        if total_clicks == 0:
+            st.info("아직 클릭한 기사가 없습니다.")
+        else:
+            # 클릭 시점별 누적 카운트
+            rows = []
+            cumulative = {c: 0 for c in categories}
+            for step, cat in enumerate(st.session_state.click_history, start=1):
+                cumulative[cat] += 1
+                row = {"클릭 순서": step}
+                for c in categories:
+                    row[f"{CAT_ICONS[c]} {c}"] = cumulative[c]
+                rows.append(row)
+            df_t = pd.DataFrame(rows).set_index("클릭 순서")
+            st.line_chart(df_t, height=260)
 
 # =========================================================
 # 탈출 체험
@@ -738,7 +856,6 @@ else:
                     escape_click(cat)
                     st.rerun()
 
-                # 탈출 모드에서도 원문 링크 제공
                 st.markdown(
                     f'<a class="news-link-btn" href="{html.escape(sample.get("link","#"))}" '
                     f'target="_blank" rel="noopener noreferrer">🔗 원문 읽기 (새 탭)</a>',
